@@ -1,1 +1,1599 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMU Medicine Planner – TCAS70 กสพท</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Noto+Serif+Thai:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-900: #2D1657;
+    --purple-800: #3D1F7A;
+    --purple-700: #4E2A9B;
+    --purple-600: #6B3FA0;
+    --purple-500: #8B5CC8;
+    --purple-400: #A97FD8;
+    --purple-300: #C9A8E8;
+    --purple-200: #E4D0F5;
+    --purple-100: #F3E8FF;
+    --purple-50:  #FAF5FF;
+    --gold: #C9A84C;
+    --gold-light: #F0DFA0;
+    --white: #FFFFFF;
+    --grey-50: #F8F7FC;
+    --grey-100: #F0EDF8;
+    --grey-200: #DDD8EF;
+    --grey-500: #8882A8;
+    --grey-700: #4B4668;
+    --text-dark: #1A1030;
+    --text-body: #3D3560;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(78,42,155,0.10);
+    --shadow-lg: 0 8px 40px rgba(78,42,155,0.16);
+  }
 
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--purple-50);
+    color: var(--text-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple-900) 0%, var(--purple-700) 60%, var(--purple-500) 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+  }
+  .header-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 10% 80%, rgba(139,92,200,0.25) 0%, transparent 50%);
+  }
+  .header-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .header-content {
+    position: relative; z-index: 1;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 32px 48px 28px;
+  }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .cmu-emblem {
+    width: 72px; height: 72px;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    backdrop-filter: blur(8px);
+  }
+  .header-title { color: white; }
+  .header-title h1 {
+    font-family: 'Noto Serif Thai', serif;
+    font-size: 24px; font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+  }
+  .header-title p {
+    font-size: 13px; font-weight: 400;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+  }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+  .badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(8px);
+  }
+  .badge.gold { background: rgba(201,168,76,0.25); border-color: var(--gold-light); }
+
+  /* ── SCORE BANNER ── */
+  .score-banner {
+    background: white;
+    border-bottom: 1px solid var(--grey-200);
+    padding: 20px 48px;
+    display: flex; gap: 12px; align-items: center; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .score-banner::-webkit-scrollbar { display: none; }
+  .score-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    min-width: 110px;
+    border: 1.5px solid var(--grey-200);
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .score-item:hover { border-color: var(--purple-400); background: var(--purple-50); transform: translateY(-2px); box-shadow: var(--shadow); }
+  .score-item .pct {
+    font-size: 22px; font-weight: 800;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--purple-700);
+  }
+  .score-item .label { font-size: 11px; color: var(--grey-500); font-weight: 500; text-align: center; }
+  .score-item.highlight { background: var(--purple-700); border-color: var(--purple-700); }
+  .score-item.highlight .pct, .score-item.highlight .label { color: white; }
+  .score-item.gold-item { background: var(--gold-light); border-color: var(--gold); }
+  .score-item.gold-item .pct { color: #7A5A00; }
+  .score-item.gold-item .label { color: #8A6A10; }
+  .score-divider { width: 1px; height: 50px; background: var(--grey-200); flex-shrink: 0; }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    display: flex; gap: 0;
+    background: white;
+    border-bottom: 1px solid var(--grey-200);
+    padding: 0 48px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 14px 22px;
+    border: none; background: none;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px; font-weight: 600;
+    color: var(--grey-500);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn.active { color: var(--purple-700); border-bottom-color: var(--purple-700); }
+  .tab-btn:hover:not(.active) { color: var(--purple-500); }
+
+  /* ── MAIN CONTENT ── */
+  .main { padding: 36px 48px; max-width: 1400px; margin: 0 auto; }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title {
+    font-family: 'Noto Serif Thai', serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--purple-900);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: block; width: 4px; height: 22px;
+    background: var(--purple-600); border-radius: 4px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--grey-100);
+  }
+  .card-grid { display: grid; gap: 20px; }
+  .col-2 { grid-template-columns: repeat(2, 1fr); }
+  .col-3 { grid-template-columns: repeat(3, 1fr); }
+  .col-4 { grid-template-columns: repeat(4, 1fr); }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--purple-400), var(--purple-200));
+    border-radius: 2px;
+  }
+  .tl-item { position: relative; margin-bottom: 24px; }
+  .tl-dot {
+    position: absolute; left: -24px; top: 4px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--purple-600);
+    border: 2px solid white;
+    box-shadow: 0 0 0 3px var(--purple-200);
+  }
+  .tl-dot.gold { background: var(--gold); box-shadow: 0 0 0 3px var(--gold-light); }
+  .tl-dot.green { background: #22C55E; box-shadow: 0 0 0 3px #DCFCE7; }
+  .tl-dot.red { background: #EF4444; box-shadow: 0 0 0 3px #FEE2E2; }
+  .tl-content { background: var(--grey-50); border-radius: 10px; padding: 14px 16px; border: 1px solid var(--grey-200); }
+  .tl-date { font-size: 11px; font-weight: 700; color: var(--purple-500); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .tl-title { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
+  .tl-desc { font-size: 12px; color: var(--grey-500); line-height: 1.5; }
+  .tl-exam { background: var(--purple-100); border-color: var(--purple-300); }
+  .tl-exam .tl-date { color: var(--purple-700); }
+  .tl-important { background: #FFF7ED; border-color: #FED7AA; }
+  .tl-important .tl-date { color: #C2410C; }
+
+  /* ── MONTHLY PLANNER ── */
+  .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .month-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--grey-100);
+  }
+  .month-header {
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .month-header h3 { font-size: 15px; font-weight: 700; color: white; }
+  .month-header .phase-tag {
+    font-size: 10px; font-weight: 700;
+    background: rgba(255,255,255,0.20);
+    padding: 3px 8px; border-radius: 100px; color: white;
+    letter-spacing: 0.5px;
+  }
+  .month-body { padding: 16px 20px; }
+  .subject-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    margin: 3px; cursor: default;
+  }
+  .pill-phys { background: #EDE9FE; color: #5B21B6; }
+  .pill-math { background: #DBEAFE; color: #1D4ED8; }
+  .pill-bio  { background: #D1FAE5; color: #065F46; }
+  .pill-chem { background: #FEE2E2; color: #991B1B; }
+  .pill-thai { background: #FEF9C3; color: #854D0E; }
+  .pill-soc  { background: #FFE4E6; color: #9F1239; }
+  .pill-eng  { background: #E0F2FE; color: #0C4A6E; }
+  .pill-tpat { background: #F3E8FF; color: #6B21A8; }
+  .month-goals { margin-top: 12px; }
+  .month-goals li { font-size: 12px; color: var(--text-body); padding: 4px 0; border-bottom: 1px solid var(--grey-100); display: flex; gap: 6px; align-items: flex-start; }
+  .month-goals li:last-child { border-bottom: none; }
+  .month-goals li::before { content: '→'; color: var(--purple-400); font-weight: 700; flex-shrink: 0; }
+  .month-hours {
+    margin-top: 12px; padding: 10px 14px;
+    background: var(--grey-50); border-radius: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .month-hours .label { font-size: 11px; color: var(--grey-500); }
+  .month-hours .value { font-size: 14px; font-weight: 800; color: var(--purple-700); font-family: 'IBM Plex Mono', monospace; }
+
+  /* PHASE COLORS */
+  .phase-1 { background: linear-gradient(135deg, #4338CA, #6D28D9); }
+  .phase-2 { background: linear-gradient(135deg, #059669, #065F46); }
+  .phase-3 { background: linear-gradient(135deg, #DC2626, #9F1239); }
+  .phase-4 { background: linear-gradient(135deg, #D97706, #92400E); }
+  .phase-exam { background: linear-gradient(135deg, #6B21A8, #4E2A9B); }
+
+  /* ── WEEKLY PLANNER ── */
+  .week-nav {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .week-nav-btn {
+    padding: 8px 16px; border-radius: 100px;
+    border: 1.5px solid var(--grey-200);
+    background: white; color: var(--grey-700);
+    font-family: 'Sarabun', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .week-nav-btn.active { background: var(--purple-700); border-color: var(--purple-700); color: white; }
+  .week-nav-btn:hover:not(.active) { border-color: var(--purple-400); color: var(--purple-700); }
+
+  .week-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;
+  }
+  .day-col { background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--grey-100); }
+  .day-header {
+    padding: 10px 12px;
+    text-align: center;
+    background: var(--purple-700);
+  }
+  .day-header h4 { font-size: 12px; font-weight: 700; color: white; }
+  .day-header .date-hint { font-size: 10px; color: rgba(255,255,255,0.65); }
+  .day-col.weekend .day-header { background: var(--purple-500); }
+  .day-body { padding: 10px 10px 12px; }
+  .time-block {
+    padding: 6px 8px; border-radius: 6px;
+    margin-bottom: 6px; font-size: 11px; font-weight: 600;
+    position: relative;
+  }
+  .time-block .time { font-size: 9px; font-weight: 700; color: currentColor; opacity: 0.75; display: block; font-family: 'IBM Plex Mono', monospace; margin-bottom: 1px; }
+  .tb-phys { background: #EDE9FE; color: #5B21B6; }
+  .tb-math { background: #DBEAFE; color: #1D4ED8; }
+  .tb-bio  { background: #D1FAE5; color: #065F46; }
+  .tb-chem { background: #FEE2E2; color: #991B1B; }
+  .tb-thai { background: #FEF9C3; color: #854D0E; }
+  .tb-soc  { background: #FFE4E6; color: #9F1239; }
+  .tb-eng  { background: #E0F2FE; color: #0C4A6E; }
+  .tb-tpat { background: #F3E8FF; color: #6B21A8; }
+  .tb-rest { background: #F1F5F9; color: #64748B; }
+  .tb-review { background: #FFFBEB; color: #92400E; }
+
+  /* ── CHECKLIST ── */
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 16px; border-radius: 10px;
+    border: 1.5px solid var(--grey-200);
+    margin-bottom: 10px; cursor: pointer;
+    transition: all 0.2s; background: white;
+  }
+  .checklist-item:hover { border-color: var(--purple-300); background: var(--purple-50); }
+  .checklist-item input[type="checkbox"] {
+    width: 18px; height: 18px; flex-shrink: 0;
+    accent-color: var(--purple-600); cursor: pointer; margin-top: 1px;
+  }
+  .checklist-item.checked { background: var(--grey-50); opacity: 0.65; }
+  .checklist-item.checked span { text-decoration: line-through; color: var(--grey-500); }
+  .checklist-label { font-size: 13px; font-weight: 500; color: var(--text-body); line-height: 1.4; }
+  .checklist-meta { font-size: 11px; color: var(--grey-500); margin-top: 2px; }
+
+  /* ── SCORE BREAKDOWN ── */
+  .breakdown-bar-container { margin-bottom: 14px; }
+  .breakdown-bar-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+  .breakdown-bar-track { height: 10px; border-radius: 100px; background: var(--grey-200); overflow: hidden; }
+  .breakdown-bar-fill { height: 100%; border-radius: 100px; transition: width 1s ease; }
+
+  /* ── TIPS ── */
+  .tip-card {
+    background: white;
+    border-left: 4px solid var(--purple-500);
+    padding: 16px 20px;
+    border-radius: 0 12px 12px 0;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+  .tip-source { font-size: 10px; font-weight: 700; color: var(--purple-400); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .tip-text { font-size: 13px; color: var(--text-body); line-height: 1.6; }
+
+  /* ── PROGRESS TRACKER ── */
+  .progress-ring { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ring-wrap { position: relative; width: 80px; height: 80px; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .ring-pct { font-size: 16px; font-weight: 800; color: var(--purple-700); font-family: 'IBM Plex Mono', monospace; }
+  .ring-label { font-size: 10px; color: var(--grey-500); font-weight: 600; text-align: center; margin-top: 6px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .header-content { padding: 24px; flex-direction: column; align-items: flex-start; gap: 16px; }
+    .score-banner, .nav-tabs { padding: 0 24px; }
+    .main { padding: 24px; }
+    .col-2, .col-3, .col-4 { grid-template-columns: 1fr; }
+    .week-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center; padding: 24px;
+    font-size: 11px; color: var(--grey-500);
+    border-top: 1px solid var(--grey-200);
+    margin-top: 40px;
+  }
+  .warning-box {
+    background: #FFFBEB; border: 1px solid #FDE68A;
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 12px; color: #78350F;
+    margin-bottom: 20px; display: flex; gap: 8px; align-items: flex-start;
+  }
+
+  /* Smooth load */
+  .fade-in { animation: fadeIn 0.6s ease both; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- ════════ HEADER ════════ -->
+<div class="header">
+  <div class="header-bg"></div>
+  <div class="header-grid"></div>
+  <div class="header-content fade-in">
+    <div class="header-left">
+      <div class="cmu-emblem">🎓</div>
+      <div class="header-title">
+        <h1>CMU Medicine Admission Planner</h1>
+        <p>คณะแพทยศาสตร์ มหาวิทยาลัยเชียงใหม่ · TCAS70 (ปีการศึกษา 2570) · ระบบ กสพท</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge">TCAS70</span>
+      <span class="badge">กสพท</span>
+      <span class="badge gold">มช. แพทย์</span>
+      <span class="badge">เริ่มเรียน: เม.ย. 2569</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCORE BANNER ════════ -->
+<div class="score-banner fade-in delay-1">
+  <div class="score-item highlight">
+    <span class="pct">TPAT1</span>
+    <span class="label">วิชาเฉพาะแพทย์<br>30%</span>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-item">
+    <span class="pct">14%</span>
+    <span class="label">คณิตศาสตร์<br>A-Level</span>
+  </div>
+  <div class="score-item">
+    <span class="pct">14%</span>
+    <span class="label">ภาษาอังกฤษ<br>A-Level</span>
+  </div>
+  <div class="score-item gold-item">
+    <span class="pct">28%</span>
+    <span class="label">วิทย์ (ฟิสิกส์+เคมี+ชีวะ)<br>A-Level รวม</span>
+  </div>
+  <div class="score-item">
+    <span class="pct">7%</span>
+    <span class="label">ภาษาไทย<br>A-Level</span>
+  </div>
+  <div class="score-item">
+    <span class="pct">7%</span>
+    <span class="label">สังคมศึกษา<br>A-Level</span>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-item highlight">
+    <span class="pct">≥30</span>
+    <span class="label">คะแนนขั้นต่ำ<br>ทุกวิชา (จาก 100)</span>
+  </div>
+  <div class="score-item">
+    <span class="pct">≥90</span>
+    <span class="label">ฟิสิกส์+เคมี+ชีวะ<br>รวมกัน (จาก 300)</span>
+  </div>
+</div>
+
+<!-- ════════ NAV TABS ════════ -->
+<div class="nav-tabs fade-in delay-2">
+  <button class="tab-btn active" onclick="showTab('overview')">📋 ภาพรวม & ไทม์ไลน์</button>
+  <button class="tab-btn" onclick="showTab('score')">📊 สัดส่วนคะแนน</button>
+  <button class="tab-btn" onclick="showTab('monthly')">📅 Monthly Planner</button>
+  <button class="tab-btn" onclick="showTab('weekly')">🗓 Weekly Planner</button>
+  <button class="tab-btn" onclick="showTab('checklist')">✅ Checklist รายวิชา</button>
+  <button class="tab-btn" onclick="showTab('tips')">💡 เทคนิค & Tips</button>
+</div>
+
+<!-- ════════ MAIN ════════ -->
+<div class="main">
+
+  <!-- ───── OVERVIEW ───── -->
+  <div id="tab-overview" class="section active">
+
+    <div class="warning-box">
+      ⚠️ <span><strong>หมายเหตุ:</strong> ปฏิทิน TCAS70 ยังไม่ประกาศอย่างเป็นทางการ วันที่นี้เป็น <strong>การประมาณการจากแพทเทิร์น TCAS68–69</strong> กรุณาติดตามประกาศจาก <a href="https://cotmesadmission.com" style="color:#78350F">cotmesadmission.com</a> และ <a href="https://mytcas.com" style="color:#78350F">mytcas.com</a> เสมอ</span>
+    </div>
+
+    <div class="card-grid col-2">
+      <!-- Timeline Left -->
+      <div>
+        <p class="section-title">📅 ไทม์ไลน์ TCAS70 (ประมาณการ)</p>
+        <div class="card">
+          <div class="timeline">
+
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-date">เม.ย. 2569 (ตอนนี้)</div>
+                <div class="tl-title">🚀 เริ่มต้นติวสอบ – Phase 1: ฟิสิกส์ + คณิต</div>
+                <div class="tl-desc">เริ่ม Phase ที่อ่อนที่สุดก่อน วางรากฐานให้แน่น</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-date">ก.ค. – ต.ค. 2569</div>
+                <div class="tl-title">🧬 Phase 2: ชีววิทยา (เข้มข้น)</div>
+                <div class="tl-desc">จบ ม.5 → ปิดเทอม → เร่ง Bio ให้เป็น Strong Subject</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot gold"></div>
+              <div class="tl-content tl-important">
+                <div class="tl-date">ต.ค. 2569 (ประมาณ 1–20 ต.ค.)</div>
+                <div class="tl-title">📝 สมัครสอบ TPAT1 วิชาเฉพาะ กสพท</div>
+                <div class="tl-desc">สมัครที่ cotmesadmission.com · ค่าสมัคร ~660–800 บาท · อย่าพลาดเด็ดขาด!</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-date">ต.ค. – พ.ย. 2569</div>
+                <div class="tl-title">⚗️ Phase 3: เคมี + ทบทวนฟิสิกส์</div>
+                <div class="tl-desc">ช่วง ม.6 เทอม 1 – เร่งเคมีควบคู่กับ Mock Exam</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot gold"></div>
+              <div class="tl-content tl-important">
+                <div class="tl-date">ต.ค. – พ.ย. 2569 (ประมาณ 30 ต.ค.–6 พ.ย.)</div>
+                <div class="tl-title">📝 สมัครสอบ TGAT / TPAT 2–5</div>
+                <div class="tl-desc">สมัครที่ mytcas.com · เลือกสอบกระดาษหรือคอมพิวเตอร์</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot red"></div>
+              <div class="tl-content tl-exam">
+                <div class="tl-date">ธ.ค. 2569 (ประมาณ 13–15 ธ.ค.)</div>
+                <div class="tl-title">🎯 สอบ TGAT / TPAT 2–5</div>
+                <div class="tl-desc">TGAT: ความถนัดทั่วไป · เตรียมพร้อม 1 เดือนก่อนสอบ</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-date">ม.ค. 2570</div>
+                <div class="tl-title">📘 Phase 4: ไทย + สังคม + อังกฤษ + โค้ง TPAT1</div>
+                <div class="tl-desc">เน้น Mock TPAT1 เข้มข้น · ทำโจทย์จริยธรรม เชาวน์ เชื่อมโยง</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot red"></div>
+              <div class="tl-content tl-exam">
+                <div class="tl-date">ก.พ. 2570 (ประมาณ 14 ก.พ.)</div>
+                <div class="tl-title">🏥 สอบ TPAT1 วิชาเฉพาะ กสพท ← สำคัญที่สุด!</div>
+                <div class="tl-desc">สอบรูปแบบกระดาษ 08.30–12.30 น. · 4 ชั่วโมง · 300 คะแนน</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot gold"></div>
+              <div class="tl-content tl-important">
+                <div class="tl-date">ม.ค. – ก.พ. 2570 (ประมาณ 28 ม.ค.–6 ก.พ.)</div>
+                <div class="tl-title">📝 สมัครสอบ A-Level</div>
+                <div class="tl-desc">7 วิชา: ฟิสิกส์, เคมี, ชีวะ, คณิต1, อังกฤษ, ไทย, สังคม</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot red"></div>
+              <div class="tl-content tl-exam">
+                <div class="tl-date">มี.ค. 2570 (ประมาณ 8–10 มี.ค.)</div>
+                <div class="tl-title">📚 สอบ A-Level ทุกวิชา</div>
+                <div class="tl-desc">3 วัน ต่อเนื่อง · เตรียม condition ร่างกายให้ดีก่อนสอบ</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot green"></div>
+              <div class="tl-content">
+                <div class="tl-date">เม.ย. 2570</div>
+                <div class="tl-title">📊 ประกาศผลคะแนน A-Level + คำนวณคะแนน กสพท</div>
+                <div class="tl-desc">ตรวจสอบว่าผ่านเกณฑ์ขั้นต่ำทุกวิชาหรือไม่ · ยื่น Admission</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot green"></div>
+              <div class="tl-content tl-exam">
+                <div class="tl-date">พ.ค. 2570</div>
+                <div class="tl-title">🏆 ประกาศผล Admission กสพท · ยืนยันสิทธิ์</div>
+                <div class="tl-desc">เลือกได้สูงสุด 10 อันดับ · CMU Medicine = อันดับ 1!</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div style="display:flex; flex-direction:column; gap:20px;">
+
+        <!-- Study Phase Overview -->
+        <div>
+          <p class="section-title">🗺 แผนการเรียน 4 Phase (ตามลำดับที่วางไว้)</p>
+          <div class="card">
+            <div style="display:flex; flex-direction:column; gap:12px;">
+
+              <div style="border:1.5px solid #C4B5FD; border-radius:12px; padding:14px; background:#FAF5FF;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-weight:800; font-size:14px; color:#4338CA;">Phase 1 – ฟิสิกส์ + คณิต</span>
+                  <span style="font-size:11px; background:#EDE9FE; color:#5B21B6; padding:3px 10px; border-radius:100px; font-weight:700;">เม.ย.–มิ.ย. 2569</span>
+                </div>
+                <p style="font-size:12px; color:#5B21B6; line-height:1.6;">เริ่มจากวิชาที่อ่อนที่สุด วางรากฐานคณิต ม.4-6 + ฟิสิกส์ทั้งหมด เน้นทำโจทย์มากกว่าอ่าน</p>
+                <div style="margin-top:8px; font-size:11px; color:#7C3AED;">⏱ ~180 ชั่วโมง | น้ำหนักคะแนน: คณิต 14% + ฟิสิกส์ ~9%</div>
+              </div>
+
+              <div style="border:1.5px solid #6EE7B7; border-radius:12px; padding:14px; background:#F0FDF4;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-weight:800; font-size:14px; color:#065F46;">Phase 2 – ชีววิทยา</span>
+                  <span style="font-size:11px; background:#D1FAE5; color:#065F46; padding:3px 10px; border-radius:100px; font-weight:700;">ก.ค.–ต.ค. 2569</span>
+                </div>
+                <p style="font-size:12px; color:#047857; line-height:1.6;">ชีวะมีเนื้อหาเยอะ ต้องใช้เวลา แต่ท่องได้ → ยิ่งอ่านยิ่งได้คะแนน เน้นท่องศัพท์ + mindmap</p>
+                <div style="margin-top:8px; font-size:11px; color:#065F46;">⏱ ~200 ชั่วโมง | น้ำหนักคะแนน: ชีวะ ~10%</div>
+              </div>
+
+              <div style="border:1.5px solid #FCA5A5; border-radius:12px; padding:14px; background:#FFF5F5;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-weight:800; font-size:14px; color:#991B1B;">Phase 3 – เคมี</span>
+                  <span style="font-size:11px; background:#FEE2E2; color:#991B1B; padding:3px 10px; border-radius:100px; font-weight:700;">พ.ย.–ธ.ค. 2569</span>
+                </div>
+                <p style="font-size:12px; color:#B91C1C; line-height:1.6;">เคมีต้องเข้าใจ ไม่ใช่ท่อง เน้นสมการ+โจทย์คำนวณ ทำข้อสอบเก่า TCAS 65-69 ให้ครบ</p>
+                <div style="margin-top:8px; font-size:11px; color:#991B1B;">⏱ ~160 ชั่วโมง | น้ำหนักคะแนน: เคมี ~10%</div>
+              </div>
+
+              <div style="border:1.5px solid #FCD34D; border-radius:12px; padding:14px; background:#FFFBEB;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-weight:800; font-size:14px; color:#92400E;">Phase 4 – ไทย + สังคม + อังกฤษ + TPAT1</span>
+                  <span style="font-size:11px; background:#FEF3C7; color:#92400E; padding:3px 10px; border-radius:100px; font-weight:700;">ม.ค.–ก.พ. 2570</span>
+                </div>
+                <p style="font-size:12px; color:#B45309; line-height:1.6;">วิชาเหล่านี้เรียนรู้ได้เร็ว เน้นทำข้อสอบเก่า + TPAT1 Mock Test เข้มข้น 3 Part</p>
+                <div style="margin-top:8px; font-size:11px; color:#92400E;">⏱ ~140 ชั่วโมง | น้ำหนักคะแนน: ไทย 7% + สังคม 7% + อังกฤษ 14% + TPAT1 30%</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Rings -->
+        <div>
+          <p class="section-title">🎯 เป้าหมายคะแนน (CMU แพทย์ ประมาณการ)</p>
+          <div class="card">
+            <div style="display:grid; grid-template-columns: repeat(4,1fr); gap:16px; text-align:center;">
+              <div class="progress-ring">
+                <div class="ring-wrap">
+                  <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#E4D0F5" stroke-width="8"/>
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#6B3FA0" stroke-width="8" stroke-dasharray="213.6" stroke-dashoffset="64" stroke-linecap="round"/>
+                  </svg>
+                  <div class="ring-center"><span class="ring-pct">70%</span></div>
+                </div>
+                <span class="ring-label">TPAT1<br>เป้าหมาย</span>
+              </div>
+              <div class="progress-ring">
+                <div class="ring-wrap">
+                  <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#DBEAFE" stroke-width="8"/>
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#1D4ED8" stroke-width="8" stroke-dasharray="213.6" stroke-dashoffset="43" stroke-linecap="round"/>
+                  </svg>
+                  <div class="ring-center"><span class="ring-pct" style="color:#1D4ED8">80%</span></div>
+                </div>
+                <span class="ring-label">คณิตศาสตร์<br>A-Level</span>
+              </div>
+              <div class="progress-ring">
+                <div class="ring-wrap">
+                  <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#D1FAE5" stroke-width="8"/>
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#059669" stroke-width="8" stroke-dasharray="213.6" stroke-dashoffset="43" stroke-linecap="round"/>
+                  </svg>
+                  <div class="ring-center"><span class="ring-pct" style="color:#059669">75%</span></div>
+                </div>
+                <span class="ring-label">ชีววิทยา<br>A-Level</span>
+              </div>
+              <div class="progress-ring">
+                <div class="ring-wrap">
+                  <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#E0F2FE" stroke-width="8"/>
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#0C4A6E" stroke-width="8" stroke-dasharray="213.6" stroke-dashoffset="43" stroke-linecap="round"/>
+                  </svg>
+                  <div class="ring-center"><span class="ring-pct" style="color:#0C4A6E">75%</span></div>
+                </div>
+                <span class="ring-label">ภาษาอังกฤษ<br>A-Level</span>
+              </div>
+            </div>
+            <div style="margin-top:16px; padding:12px; background:var(--purple-50); border-radius:10px; font-size:12px; color:var(--text-body); text-align:center; border:1px solid var(--purple-200);">
+              📌 <strong>คะแนน กสพท รวมเฉลี่ยที่ต้องการ: ~75–78%</strong> เพื่อมีโอกาสติด มช. แพทย์ (อ้างอิงสถิติ TCAS67–69)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── SCORE BREAKDOWN ───── -->
+  <div id="tab-score" class="section">
+    <p class="section-title">📊 การแตกสัดส่วนคะแนน กสพท อย่างละเอียด</p>
+
+    <div class="card-grid col-2">
+      <div class="card">
+        <h3 style="font-size:16px; font-weight:700; color:var(--purple-800); margin-bottom:20px;">สัดส่วน A-Level (70%) แตกรายวิชา</h3>
+        <div class="breakdown-bar-container">
+          <div class="breakdown-bar-label"><span>🔬 ฟิสิกส์ (A-Level)</span><span style="color:var(--purple-600);">~9.3%</span></div>
+          <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:9.3%; background:#8B5CC8;"></div></div>
+        </div>
+        <div class="breakdown-bar-container">
+          <div class="breakdown-bar-label"><span>⚗️ เคมี (A-Level)</span><span style="color:#991B1B;">~9.3%</span></div>
+          <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:9.3%; background:#EF4444;"></div></div>
+        </div>
+        <div class="breakdown-bar-container">
+          <div class="breakdown-bar-label"><span>🧬 ชีววิทยา (A-Level)</span><span style="color:#059669;">~9.3%</span></div>
+          <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:9.3%; background:#10B981;"></div></div>
+        </div>
+        <div class="breakdown-bar-container">
+          <div class="breakdown-bar-label"><span>🔢 คณิตศาสตร์ 1 (A-Level)</span><span style="color:#1D4ED8;">14%</span></div>
+          <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:14%; background:#3B82F6;"></div></div>
+        </div>
+        <div class="breakdown-bar-container">
+          <div class="breakdown-bar-label"><span>🇬🇧 ภาษาอังกฤษ (A-Level)</span><span style="color:#0C4A6E;">14%</span></div>
+          <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:14%; background:#0EA5E9;"></div></div>
+        </div>
+        <div class="breakdown-bar-container">
+          <div class="breakdown-bar-label"><span>🇹🇭 ภาษาไทย (A-Level)</span><span style="color:#854D0E;">7%</span></div>
+          <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:7%; background:#F59E0B;"></div></div>
+        </div>
+        <div class="breakdown-bar-container">
+          <div class="breakdown-bar-label"><span>🌏 สังคมศึกษา (A-Level)</span><span style="color:#9F1239;">7%</span></div>
+          <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:7%; background:#F43F5E;"></div></div>
+        </div>
+        <div class="breakdown-bar-container" style="margin-top:16px; border-top:1px solid var(--grey-200); padding-top:16px;">
+          <div class="breakdown-bar-label"><span style="font-weight:800;">🏥 TPAT1 วิชาเฉพาะ กสพท</span><span style="color:var(--purple-700); font-weight:800;">30%</span></div>
+          <div class="breakdown-bar-track" style="height:14px;"><div class="breakdown-bar-fill" style="width:30%; background:linear-gradient(90deg, #4E2A9B, #8B5CC8);"></div></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div class="card">
+          <h3 style="font-size:15px; font-weight:700; color:var(--purple-800); margin-bottom:14px;">TPAT1 แตกรายพาร์ต (30% รวม)</h3>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <div style="background:#F3E8FF; border-radius:10px; padding:14px; text-align:center;">
+              <div style="font-size:20px; font-weight:800; color:#6B21A8; font-family:'IBM Plex Mono', monospace;">10%</div>
+              <div style="font-size:11px; color:#7C3AED; font-weight:600; margin-top:4px;">🧠 เชาวน์ปัญญา<br>(Logical)</div>
+            </div>
+            <div style="background:#FDF4FF; border-radius:10px; padding:14px; text-align:center;">
+              <div style="font-size:20px; font-weight:800; color:#86198F; font-family:'IBM Plex Mono', monospace;">10%</div>
+              <div style="font-size:11px; color:#86198F; font-weight:600; margin-top:4px;">⚖️ จริยธรรมแพทย์<br>(Ethics)</div>
+            </div>
+            <div style="background:#FFF0F3; border-radius:10px; padding:14px; text-align:center;">
+              <div style="font-size:20px; font-weight:800; color:#9F1239; font-family:'IBM Plex Mono', monospace;">10%</div>
+              <div style="font-size:11px; color:#9F1239; font-weight:600; margin-top:4px;">🔗 เชื่อมโยง<br>(Critical)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:15px; font-weight:700; color:var(--purple-800); margin-bottom:14px;">เกณฑ์ขั้นต่ำที่ต้องผ่าน</h3>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#FEF9C3; border-radius:8px; font-size:13px;">
+              <span>⚠️</span>
+              <span>แต่ละวิชา A-Level ต้องได้ <strong>≥ 30 คะแนน</strong> จาก 100 คะแนน</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#FEE2E2; border-radius:8px; font-size:13px;">
+              <span>🔬</span>
+              <span>ฟิสิกส์ + เคมี + ชีวะ รวมกัน ต้องได้ <strong>≥ 90 คะแนน</strong> จาก 300</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#DCFCE7; border-radius:8px; font-size:13px;">
+              <span>📌</span>
+              <span>คะแนน A-Level ปีการศึกษา 2569 <strong>ใช้ยื่น TCAS70 ไม่ได้</strong> ต้องสอบปี 2570</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:15px; font-weight:700; color:var(--purple-800); margin-bottom:14px;">สูตรคำนวณคะแนน กสพท</h3>
+          <div style="background:var(--purple-900); border-radius:10px; padding:16px; font-family:'IBM Plex Mono', monospace; font-size:12px; color:#C9A8E8; line-height:2;">
+            คะแนนรวม = <br>
+            &nbsp;&nbsp;(TPAT1 / 300) × 30 <br>
+            + (คณิต / 100) × 14 <br>
+            + (อังกฤษ / 100) × 14 <br>
+            + (ฟิสิกส์+เคมี+ชีวะ / 300) × 28 <br>
+            + (ไทย / 100) × 7 <br>
+            + (สังคม / 100) × 7 <br>
+            <span style="color:var(--gold-light);">─────────────────────</span><br>
+            <span style="color:white;">= คะแนน กสพท (เต็ม 100)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── MONTHLY PLANNER ───── -->
+  <div id="tab-monthly" class="section">
+    <p class="section-title">📅 Monthly Study Planner (เม.ย. 2569 – พ.ค. 2570)</p>
+
+    <div class="warning-box">
+      📖 แผนนี้อ้างอิงจากสไตล์การวางแผนของ OnDemand, SmartMathPro และ AdmissionPremium โดยเรียงตามลำดับ Weak → Strong ของน้อง: ฟิสิกส์/คณิต → ชีวะ → เคมี → ไทย/สังคม/อังกฤษ → TPAT1
+    </div>
+
+    <div class="month-grid">
+
+      <!-- Apr 2026 -->
+      <div class="month-card">
+        <div class="month-header phase-1">
+          <h3>เมษายน 2569</h3>
+          <span class="phase-tag">Phase 1 Start</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-phys">🔬 ฟิสิกส์</span><span class="subject-pill pill-math">🔢 คณิต</span></div>
+          <ul class="month-goals">
+            <li>เริ่มพื้นฐาน ฟิสิกส์ ม.4 (กลศาสตร์, แรง, การเคลื่อนที่)</li>
+            <li>ทบทวนคณิต ม.4 ครบทุกหน่วย (สมการ, ลำดับ, อนุกรม)</li>
+            <li>เปิดคอร์ส OnDemand / SmartMathPro ฟิสิกส์พื้นฐาน</li>
+            <li>วางตารางเรียนประจำสัปดาห์ + ซื้อสมุดจด</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~120 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- May 2026 -->
+      <div class="month-card">
+        <div class="month-header phase-1">
+          <h3>พฤษภาคม 2569</h3>
+          <span class="phase-tag">Phase 1</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-phys">🔬 ฟิสิกส์</span><span class="subject-pill pill-math">🔢 คณิต</span></div>
+          <ul class="month-goals">
+            <li>ฟิสิกส์ ม.5: คลื่น, เสียง, ไฟฟ้าสถิต, กระแสไฟฟ้า</li>
+            <li>คณิต ม.5: แคลคูลัส, เมทริกซ์, เวกเตอร์</li>
+            <li>ทำข้อสอบเก่า A-Level คณิตศาสตร์ TCAS66–68</li>
+            <li>Mock Test คณิต + ฟิสิกส์ อย่างน้อย 2 ชุด</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~130 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Jun 2026 -->
+      <div class="month-card">
+        <div class="month-header phase-1">
+          <h3>มิถุนายน 2569</h3>
+          <span class="phase-tag">Phase 1 ปิด</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-phys">🔬 ฟิสิกส์</span><span class="subject-pill pill-math">🔢 คณิต</span><span class="subject-pill pill-tpat">🏥 TPAT1 Preview</span></div>
+          <ul class="month-goals">
+            <li>ฟิสิกส์ ม.6: นิวเคลียร์, สัมพัทธภาพ, ฟิสิกส์อะตอม</li>
+            <li>สรุป mindmap คณิต + ฟิสิกส์ ทุกหน่วย</li>
+            <li>เริ่มทำความรู้จัก TPAT1 Part เชาวน์ปัญญา (ดูโจทย์ตัวอย่าง)</li>
+            <li>ประเมินตัวเองด้วย Pre-Test คณิต + ฟิสิกส์</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~110 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Jul 2026 -->
+      <div class="month-card">
+        <div class="month-header phase-2">
+          <h3>กรกฎาคม 2569</h3>
+          <span class="phase-tag">Phase 2 Start</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-bio">🧬 ชีววิทยา</span><span class="subject-pill pill-math">🔢 คณิต (ทบทวน)</span></div>
+          <ul class="month-goals">
+            <li>เริ่มชีวะ ม.4: เซลล์, พันธุกรรม DNA, วิวัฒนาการ</li>
+            <li>ทำ Mindmap ชีวะทุก Chapter ตั้งแต่เริ่มต้น</li>
+            <li>ทบทวนคณิต 30 นาที/วัน ไม่ให้ลืม</li>
+            <li>สร้าง flashcard ศัพท์ชีวะ ทำทุกวัน</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~140 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Aug 2026 -->
+      <div class="month-card">
+        <div class="month-header phase-2">
+          <h3>สิงหาคม 2569</h3>
+          <span class="phase-tag">Phase 2</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-bio">🧬 ชีววิทยา</span></div>
+          <ul class="month-goals">
+            <li>ชีวะ ม.5: ระบบในร่างกาย (ย่อยอาหาร, หมุนเวียนโลหิต, ประสาท)</li>
+            <li>ชีวะ ม.5: นิเวศวิทยา, ความหลากหลายทางชีวภาพ</li>
+            <li>ทำข้อสอบเก่า Bio A-Level TCAS67–69</li>
+            <li>สรุปโจทย์ที่ผิดทุกข้อ เก็บไว้ทบทวน</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~150 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Sep 2026 -->
+      <div class="month-card">
+        <div class="month-header phase-2">
+          <h3>กันยายน 2569</h3>
+          <span class="phase-tag">Phase 2</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-bio">🧬 ชีววิทยา</span><span class="subject-pill pill-tpat">🏥 TPAT1 เชาวน์</span></div>
+          <ul class="month-goals">
+            <li>ชีวะ ม.6: พืช, สัตว์ ครบทุกหน่วย</li>
+            <li>Mock Test ชีวะ 3 ชุดในเดือนนี้</li>
+            <li>เริ่มฝึก TPAT1 Part เชาวน์ปัญญา สัปดาห์ละ 1 ชุด</li>
+            <li>ตรวจสอบข่าวสมัคร TPAT1 (คาดเปิดรับ ต.ค. 2569)</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~140 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Oct 2026 -->
+      <div class="month-card" style="border:2px solid #C9A84C;">
+        <div class="month-header phase-2">
+          <h3>ตุลาคม 2569 ⚠️</h3>
+          <span class="phase-tag">สมัคร TPAT1!</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-bio">🧬 ชีวะ (จบ)</span><span class="subject-pill pill-chem">⚗️ เคมี เริ่ม</span><span class="subject-pill pill-tpat">🏥 สมัคร TPAT1</span></div>
+          <ul class="month-goals">
+            <li>🔴 สมัครสอบ TPAT1 ที่ cotmesadmission.com (อย่าพลาด!)</li>
+            <li>สรุป Bio ทั้งหมด ทำ mindmap ใหญ่</li>
+            <li>เริ่มเคมี ม.4: อะตอม, ตารางธาตุ, พันธะเคมี</li>
+            <li>สมัคร TGAT/TPAT 2–5 (คาด ปลาย ต.ค.–ต้น พ.ย.)</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~120 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Nov 2026 -->
+      <div class="month-card">
+        <div class="month-header phase-3">
+          <h3>พฤศจิกายน 2569</h3>
+          <span class="phase-tag">Phase 3</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-chem">⚗️ เคมี</span><span class="subject-pill pill-phys">🔬 ฟิสิกส์ (ทบทวน)</span></div>
+          <ul class="month-goals">
+            <li>เคมี ม.5: ของแข็ง-ของเหลว-แก๊ส, สมดุลเคมี, กรด-เบส</li>
+            <li>ทำโจทย์คำนวณเคมีทุกประเภท ไม่ข้ามข้อ</li>
+            <li>ทบทวนฟิสิกส์ด้วยข้อสอบเก่า 1 ชุด/สัปดาห์</li>
+            <li>ทำ Mock TPAT1 Part จริยธรรม 2 ชุด</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~130 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Dec 2026 -->
+      <div class="month-card" style="border:2px solid #EF4444;">
+        <div class="month-header phase-exam">
+          <h3>ธันวาคม 2569 🎯</h3>
+          <span class="phase-tag">TGAT/TPAT สอบ!</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-chem">⚗️ เคมี</span><span class="subject-pill pill-tpat">🏥 TPAT1 Prep</span></div>
+          <ul class="month-goals">
+            <li>🔴 สอบ TGAT/TPAT 2–5 (ประมาณ 13–15 ธ.ค.)</li>
+            <li>สัปดาห์ก่อนสอบ: ทบทวนทุกวิชา หยุดเรียนใหม่</li>
+            <li>เคมี ม.6: เคมีอินทรีย์, พอลิเมอร์, ธาตุในชีวิต</li>
+            <li>เริ่มทำ TPAT1 Full Mock Test (3 Part พร้อมกัน)</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~100 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Jan 2027 -->
+      <div class="month-card">
+        <div class="month-header phase-4">
+          <h3>มกราคม 2570</h3>
+          <span class="phase-tag">Phase 4 Start</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-thai">🇹🇭 ไทย</span><span class="subject-pill pill-soc">🌏 สังคม</span><span class="subject-pill pill-eng">🇬🇧 อังกฤษ</span><span class="subject-pill pill-tpat">🏥 TPAT1</span></div>
+          <ul class="month-goals">
+            <li>📝 สมัครสอบ A-Level (ประมาณ 28 ม.ค. – 6 ก.พ.)</li>
+            <li>เริ่มไทย: วรรณคดี, ภาษา, การอ่าน แบบเน้นโจทย์</li>
+            <li>อังกฤษ: Reading comprehension, Grammar, Vocab</li>
+            <li>TPAT1 Mock Test สัปดาห์ละ 2 ชุด เพิ่มความเร็ว</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~120 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Feb 2027 -->
+      <div class="month-card" style="border:2px solid #8B5CC8;">
+        <div class="month-header phase-exam">
+          <h3>กุมภาพันธ์ 2570 🏥</h3>
+          <span class="phase-tag">TPAT1 สอบ!</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-tpat">🏥 TPAT1 โค้งสุดท้าย</span><span class="subject-pill pill-soc">🌏 สังคม</span></div>
+          <ul class="month-goals">
+            <li>🔴 สอบ TPAT1 (ประมาณ 14 ก.พ.) 08.30–12.30 น.</li>
+            <li>สัปดาห์สุดท้าย: Mock Test TPAT1 ทุกวัน</li>
+            <li>เตรียม condition ร่างกาย นอนหลับให้พอ</li>
+            <li>สังคม: ท่องเนื้อหาเน้นๆ ทำโจทย์ข้อสอบเก่า</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~100 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Mar 2027 -->
+      <div class="month-card" style="border:2px solid #EF4444;">
+        <div class="month-header phase-exam">
+          <h3>มีนาคม 2570 🎓</h3>
+          <span class="phase-tag">A-Level สอบ!</span>
+        </div>
+        <div class="month-body">
+          <div><span class="subject-pill pill-phys">🔬 ฟิสิกส์</span><span class="subject-pill pill-chem">⚗️ เคมี</span><span class="subject-pill pill-bio">🧬 ชีวะ</span><span class="subject-pill pill-math">🔢 คณิต</span><span class="subject-pill pill-eng">🇬🇧 Eng</span></div>
+          <ul class="month-goals">
+            <li>🔴 สอบ A-Level ทุก 7 วิชา (ประมาณ 8–10 มี.ค.)</li>
+            <li>ก่อนสอบ 1 สัปดาห์: ทบทวนสรุปเท่านั้น ห้ามเรียนใหม่</li>
+            <li>เตรียมของใช้สอบ บัตรประชาชน บัตรที่นั่งสอบ</li>
+            <li>หลังสอบ: พักผ่อน รอฟังผล</li>
+          </ul>
+          <div class="month-hours"><span class="label">เป้าหมายชั่วโมงเรียน</span><span class="value">~80 ชม.</span></div>
+        </div>
+      </div>
+
+      <!-- Apr-May 2027 -->
+      <div class="month-card">
+        <div class="month-header" style="background:linear-gradient(135deg, var(--gold), #B8860B);">
+          <h3>เม.ย. – พ.ค. 2570 🏆</h3>
+          <span class="phase-tag">ประกาศผล!</span>
+        </div>
+        <div class="month-body">
+          <ul class="month-goals">
+            <li>ประกาศผล A-Level และคำนวณคะแนน กสพท</li>
+            <li>ตรวจสอบเกณฑ์ขั้นต่ำ ≥30 ทุกวิชา</li>
+            <li>ยื่นจัดอันดับ Admission (สูงสุด 10 อันดับ)</li>
+            <li>ประกาศผล Admission กสพท 🎉 ยืนยันสิทธิ์ CMU!</li>
+          </ul>
+          <div class="month-hours"><span class="label">ชั่วโมงเรียน</span><span class="value">รอผล 🎊</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ───── WEEKLY PLANNER ───── -->
+  <div id="tab-weekly" class="section">
+    <p class="section-title">🗓 Weekly Study Schedule (ตัวอย่างตารางเรียนรายสัปดาห์)</p>
+
+    <div class="week-nav" id="weekNav">
+      <button class="week-nav-btn active" onclick="showWeek('w1')">Phase 1: ฟิสิกส์+คณิต</button>
+      <button class="week-nav-btn" onclick="showWeek('w2')">Phase 2: ชีววิทยา</button>
+      <button class="week-nav-btn" onclick="showWeek('w3')">Phase 3: เคมี</button>
+      <button class="week-nav-btn" onclick="showWeek('w4')">Phase 4: ไทย+สังคม+อังกฤษ</button>
+      <button class="week-nav-btn" onclick="showWeek('w5')">โค้งสุดท้าย TPAT1 + A-Level</button>
+    </div>
+
+    <!-- PHASE 1 -->
+    <div id="week-w1" class="week-table">
+      <div class="week-grid">
+        <div class="day-col">
+          <div class="day-header"><h4>จันทร์</h4><div class="date-hint">Mon</div></div>
+          <div class="day-body">
+            <div class="time-block tb-phys"><span class="time">08:00–10:00</span>ฟิสิกส์ เนื้อหาใหม่</div>
+            <div class="time-block tb-phys"><span class="time">10:30–12:00</span>ฟิสิกส์ โจทย์ฝึกทำ</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-math"><span class="time">14:00–16:00</span>คณิต เนื้อหา</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:30</span>ทบทวนสิ่งที่เรียนวันนี้</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>อังคาร</h4><div class="date-hint">Tue</div></div>
+          <div class="day-body">
+            <div class="time-block tb-math"><span class="time">08:00–10:00</span>คณิต โจทย์ยาก</div>
+            <div class="time-block tb-phys"><span class="time">10:30–12:00</span>ฟิสิกส์ Mock ย่อย</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-math"><span class="time">14:00–16:00</span>คณิต ข้อสอบเก่า</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:30</span>ทบทวน + Flashcard</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พุธ</h4><div class="date-hint">Wed</div></div>
+          <div class="day-body">
+            <div class="time-block tb-phys"><span class="time">08:00–10:00</span>ฟิสิกส์ บทถัดไป</div>
+            <div class="time-block tb-math"><span class="time">10:30–12:00</span>คณิต สรุป Mindmap</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–15:00</span>TPAT1 เชาวน์ Preview</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>ทบทวนโจทย์ผิด</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พฤหัส</h4><div class="date-hint">Thu</div></div>
+          <div class="day-body">
+            <div class="time-block tb-math"><span class="time">08:00–10:00</span>คณิต เนื้อหาใหม่</div>
+            <div class="time-block tb-phys"><span class="time">10:30–12:00</span>ฟิสิกส์ โจทย์ยาก</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-math"><span class="time">14:00–16:00</span>คณิต ทดสอบย่อย</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:30</span>สรุป + จัดโจทย์ผิด</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>ศุกร์</h4><div class="date-hint">Fri</div></div>
+          <div class="day-body">
+            <div class="time-block tb-phys"><span class="time">08:00–10:00</span>ฟิสิกส์ สรุปสัปดาห์</div>
+            <div class="time-block tb-math"><span class="time">10:30–12:00</span>คณิต ทบทวน</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–15:30</span>TPAT1 เชาวน์ฝึก</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>วางแผนสัปดาห์หน้า</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>เสาร์</h4><div class="date-hint">Sat</div></div>
+          <div class="day-body">
+            <div class="time-block tb-phys"><span class="time">09:00–11:00</span>ฟิสิกส์ Mock Test</div>
+            <div class="time-block tb-math"><span class="time">11:00–13:00</span>คณิต Mock Test</div>
+            <div class="time-block tb-rest"><span class="time">13:00–15:00</span>พักเที่ยง + ออกกำลัง</div>
+            <div class="time-block tb-review"><span class="time">15:00–17:00</span>เฉลย + วิเคราะห์จุดบกพร่อง</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>อาทิตย์</h4><div class="date-hint">Sun</div></div>
+          <div class="day-body">
+            <div class="time-block tb-rest"><span class="time">09:00–11:00</span>พักผ่อน / ทำงานอดิเรก</div>
+            <div class="time-block tb-review"><span class="time">11:00–13:00</span>ทบทวนโจทย์ผิดทั้งสัปดาห์</div>
+            <div class="time-block tb-rest"><span class="time">13:00–18:00</span>พักผ่อน ชาร์จพลัง</div>
+            <div class="time-block tb-review"><span class="time">19:00–20:00</span>วางแผน + จัดตารางสัปดาห์ใหม่</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px; padding:12px 16px; background:var(--purple-50); border-radius:10px; font-size:12px; color:var(--text-body); border:1px solid var(--purple-200);">
+        📌 <strong>เป้าหมาย Phase 1:</strong> ฟิสิกส์ ม.4–6 ครบ + คณิต ม.4–6 ครบ | ชั่วโมงเรียนรวม ~7–8 ชม./วันเรียน | 5–6 ชม./วันหยุด
+      </div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div id="week-w2" class="week-table" style="display:none;">
+      <div class="week-grid">
+        <div class="day-col">
+          <div class="day-header"><h4>จันทร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-bio"><span class="time">08:00–10:00</span>ชีวะ เนื้อหาใหม่</div>
+            <div class="time-block tb-bio"><span class="time">10:30–12:00</span>ชีวะ Mindmap</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-math"><span class="time">14:00–15:00</span>คณิต ทบทวน 1 ชม.</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:30</span>ชีวะ ท่อง Flashcard</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>อังคาร</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-bio"><span class="time">08:00–10:00</span>ชีวะ โจทย์ฝึกทำ</div>
+            <div class="time-block tb-bio"><span class="time">10:30–12:00</span>ชีวะ บทถัดไป</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-phys"><span class="time">14:00–15:00</span>ฟิสิกส์ ทบทวน 1 ชม.</div>
+            <div class="time-block tb-tpat"><span class="time">20:00–21:30</span>TPAT1 เชาวน์ 1 ชุด</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พุธ</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-bio"><span class="time">08:00–10:00</span>ชีวะ ระบบร่างกาย</div>
+            <div class="time-block tb-bio"><span class="time">10:30–12:00</span>ชีวะ โจทย์ข้อสอบเก่า</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-bio"><span class="time">14:00–16:00</span>ชีวะ Mock ย่อย</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>Flashcard Bio ท่องซ้ำ</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พฤหัส</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-bio"><span class="time">08:00–10:00</span>ชีวะ เนื้อหาใหม่</div>
+            <div class="time-block tb-bio"><span class="time">10:30–12:00</span>ชีวะ สรุป Chapter</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-math"><span class="time">14:00–15:30</span>คณิต ทบทวนอย่างน้อย</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>วิเคราะห์จุดบกพร่อง</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>ศุกร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-bio"><span class="time">08:00–10:00</span>ชีวะ สรุปสัปดาห์</div>
+            <div class="time-block tb-tpat"><span class="time">10:30–12:00</span>TPAT1 จริยธรรม ฝึก</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-bio"><span class="time">14:00–16:00</span>ชีวะ ข้อสอบเก่า</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>วางแผนสัปดาห์หน้า</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>เสาร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-bio"><span class="time">09:00–12:00</span>ชีวะ Mock Test เต็ม</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักเที่ยง</div>
+            <div class="time-block tb-review"><span class="time">14:00–16:00</span>เฉลย + Mindmap สรุป</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>อาทิตย์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-rest"><span class="time">ทั้งวัน</span>พักผ่อน / Recharge</div>
+            <div class="time-block tb-review"><span class="time">19:00–20:00</span>ท่อง Flashcard Bio ก่อนนอน</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 3 -->
+    <div id="week-w3" class="week-table" style="display:none;">
+      <div class="week-grid">
+        <div class="day-col">
+          <div class="day-header"><h4>จันทร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-chem"><span class="time">08:00–10:00</span>เคมี เนื้อหาใหม่</div>
+            <div class="time-block tb-chem"><span class="time">10:30–12:00</span>เคมี โจทย์คำนวณ</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-bio"><span class="time">14:00–15:00</span>ชีวะ ทบทวน 1 ชม.</div>
+            <div class="time-block tb-tpat"><span class="time">20:00–21:30</span>TPAT1 Mock 1 Part</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>อังคาร</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-chem"><span class="time">08:00–10:00</span>เคมี โจทย์ยาก</div>
+            <div class="time-block tb-chem"><span class="time">10:30–12:00</span>เคมี สมดุล/กรด-เบส</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-phys"><span class="time">14:00–15:00</span>ฟิสิกส์ ทบทวน</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:30</span>สรุปจุดยาก เคมี</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พุธ</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-chem"><span class="time">08:00–10:00</span>เคมี บทใหม่</div>
+            <div class="time-block tb-chem"><span class="time">10:30–12:00</span>เคมี ข้อสอบเก่า</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-math"><span class="time">14:00–15:00</span>คณิต ทบทวน</div>
+            <div class="time-block tb-tpat"><span class="time">20:00–21:30</span>TPAT1 เชื่อมโยง ฝึก</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พฤหัส</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-chem"><span class="time">08:00–10:00</span>เคมีอินทรีย์</div>
+            <div class="time-block tb-chem"><span class="time">10:30–12:00</span>เคมี Mock ย่อย</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-bio"><span class="time">14:00–15:00</span>ชีวะ ทบทวน</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>วิเคราะห์จุดบกพร่อง</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>ศุกร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-chem"><span class="time">08:00–10:00</span>เคมี สรุปสัปดาห์</div>
+            <div class="time-block tb-tpat"><span class="time">10:30–12:00</span>TPAT1 Full Mock (1 ชุด)</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-chem"><span class="time">14:00–16:00</span>เคมี ข้อสอบ A-Level</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>วางแผนสัปดาห์หน้า</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>เสาร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-chem"><span class="time">09:00–12:00</span>เคมี Mock Test เต็ม</div>
+            <div class="time-block tb-review"><span class="time">14:00–16:00</span>เฉลย เคมี + ฟิสิกส์</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>อาทิตย์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-rest"><span class="time">ทั้งวัน</span>พักผ่อน</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>ทบทวน TPAT1 ก่อนนอน</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 4 -->
+    <div id="week-w4" class="week-table" style="display:none;">
+      <div class="week-grid">
+        <div class="day-col">
+          <div class="day-header"><h4>จันทร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-thai"><span class="time">08:00–10:00</span>ภาษาไทย เนื้อหา</div>
+            <div class="time-block tb-eng"><span class="time">10:30–12:00</span>อังกฤษ Reading</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–16:00</span>TPAT1 Mock 2 Part</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:30</span>ทบทวน ไทย + อังกฤษ</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>อังคาร</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-soc"><span class="time">08:00–10:00</span>สังคม ท่องเนื้อหา</div>
+            <div class="time-block tb-eng"><span class="time">10:30–12:00</span>อังกฤษ Grammar</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–16:00</span>TPAT1 Full Mock</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:30</span>เฉลย + จดจุดผิด</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พุธ</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-thai"><span class="time">08:00–10:00</span>ไทย ข้อสอบเก่า</div>
+            <div class="time-block tb-soc"><span class="time">10:30–12:00</span>สังคม ข้อสอบเก่า</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–15:30</span>TPAT1 เชาวน์ Speed</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>สรุป TPAT1</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>พฤหัส</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-eng"><span class="time">08:00–10:00</span>อังกฤษ Mock</div>
+            <div class="time-block tb-thai"><span class="time">10:30–12:00</span>ไทย Mock</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–16:00</span>TPAT1 Full Mock</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>วิเคราะห์คะแนน</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header"><h4>ศุกร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-soc"><span class="time">08:00–10:00</span>สังคม สรุปสัปดาห์</div>
+            <div class="time-block tb-eng"><span class="time">10:30–12:00</span>อังกฤษ Vocab</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักกลางวัน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–15:30</span>TPAT1 จริยธรรม</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>วางแผนสัปดาห์หน้า</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>เสาร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-tpat"><span class="time">09:00–13:00</span>TPAT1 Full Simulation (4 ชม.)</div>
+            <div class="time-block tb-review"><span class="time">14:00–16:00</span>เฉลย + วิเคราะห์ละเอียด</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>อาทิตย์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-rest"><span class="time">ทั้งวัน</span>พักผ่อน เต็มที่</div>
+            <div class="time-block tb-review"><span class="time">20:00–21:00</span>อ่านบทความ/คลิปจริยธรรม</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE EXAM -->
+    <div id="week-w5" class="week-table" style="display:none;">
+      <div style="padding:16px; background:#FFF7ED; border:1.5px solid #FED7AA; border-radius:12px; margin-bottom:20px; font-size:13px; color:#7C2D12;">
+        🔥 <strong>โค้งสุดท้าย!</strong> ห้ามเรียนเนื้อหาใหม่ เน้นทบทวน + Mock Test + รักษา condition ร่างกาย
+      </div>
+      <div class="week-grid">
+        <div class="day-col">
+          <div class="day-header" style="background:#7C3AED;"><h4>จันทร์</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-tpat"><span class="time">08:30–12:30</span>🏥 TPAT1 Full Simulation</div>
+            <div class="time-block tb-rest"><span class="time">12:30–14:30</span>พักกลางวัน</div>
+            <div class="time-block tb-review"><span class="time">14:30–16:30</span>เฉลย TPAT1 ทุกข้อ</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header" style="background:#7C3AED;"><h4>อังคาร</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-bio"><span class="time">08:00–10:00</span>ชีวะ + เคมี ทบทวนสรุป</div>
+            <div class="time-block tb-phys"><span class="time">10:30–12:00</span>ฟิสิกส์ + คณิต ทบทวน</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักผ่อน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–16:00</span>TPAT1 Part เชาวน์ Speed</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header" style="background:#7C3AED;"><h4>พุธ</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-thai"><span class="time">08:00–10:00</span>ไทย + สังคม ทบทวน</div>
+            <div class="time-block tb-eng"><span class="time">10:30–12:00</span>อังกฤษ ทบทวน</div>
+            <div class="time-block tb-rest"><span class="time">12:00–14:00</span>พักผ่อน</div>
+            <div class="time-block tb-tpat"><span class="time">14:00–15:30</span>TPAT1 จริยธรรม ทบทวน</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header" style="background:#DC2626;"><h4>พฤหัส ⚠️</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-review"><span class="time">08:00–10:00</span>ทบทวนสิ่งที่กังวล</div>
+            <div class="time-block tb-rest"><span class="time">10:00–16:00</span>พักผ่อน ดูหนัง ออกกำลัง</div>
+            <div class="time-block tb-rest"><span class="time">21:00</span>นอนก่อน 21.00 น.</div>
+          </div>
+        </div>
+        <div class="day-col">
+          <div class="day-header" style="background:#DC2626;"><h4>ศุกร์ – วันก่อนสอบ</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-review"><span class="time">08:00–10:00</span>อ่านสรุปรวมเบา ๆ</div>
+            <div class="time-block tb-rest"><span class="time">10:00–16:00</span>พักผ่อน เต็มที่</div>
+            <div class="time-block tb-rest"><span class="time">16:00</span>เตรียมของใช้สอบ</div>
+            <div class="time-block tb-rest"><span class="time">20:00</span>นอนก่อน 20.00 น.!</div>
+          </div>
+        </div>
+        <div class="day-col weekend" style="">
+          <div class="day-header" style="background:#6B21A8;"><h4>เสาร์ – วันสอบ 🏥</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-tpat"><span class="time">06:00</span>ตื่นนอน + อาหารเช้า</div>
+            <div class="time-block tb-tpat"><span class="time">08:30–12:30</span>🎯 สอบ TPAT1 จริง!</div>
+            <div class="time-block tb-rest"><span class="time">หลังสอบ</span>พักผ่อน ห้ามไปดูเฉลย</div>
+          </div>
+        </div>
+        <div class="day-col weekend">
+          <div class="day-header"><h4>อาทิตย์ – หลังสอบ</h4></div>
+          <div class="day-body">
+            <div class="time-block tb-rest"><span class="time">ทั้งวัน</span>🎊 พักผ่อน ฉลอง!</div>
+            <div class="time-block tb-review"><span class="time">เย็น</span>วางแผน A-Level ต่อ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── CHECKLIST ───── -->
+  <div id="tab-checklist" class="section">
+    <p class="section-title">✅ Checklist รายวิชา (คลิกเพื่อ Mark เสร็จแล้ว)</p>
+
+    <div class="card-grid col-2">
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:14px; font-weight:700; color:#5B21B6; margin-bottom:14px;">🔬 ฟิสิกส์ A-Level (น้ำหนัก ~9%)</h3>
+          <div id="check-phys">
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">กลศาสตร์ ม.4 (แรง, ความเร็ว, ความเร่ง)</div><div class="checklist-meta">SmartMathPro / OnDemand ฟิสิกส์พื้นฐาน</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">งานและพลังงาน, โมเมนตัม</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">คลื่น เสียง แสง</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ไฟฟ้าสถิต กระแสไฟฟ้า แม่เหล็กไฟฟ้า</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ฟิสิกส์อะตอม นิวเคลียร์ สัมพัทธภาพ ม.6</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ทำข้อสอบเก่า A-Level ฟิสิกส์ TCAS66–69 ครบ</div><div class="checklist-meta">ดาวน์โหลดที่ mytcas.com/stat</div></div></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:14px; font-weight:700; color:#991B1B; margin-bottom:14px;">⚗️ เคมี A-Level (น้ำหนัก ~9%)</h3>
+          <div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">อะตอม ตารางธาตุ พันธะเคมี</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ของแข็ง ของเหลว แก๊ส สมดุลเคมี</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">กรด-เบส ปฏิกิริยา ออกซิเดชัน</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">เคมีอินทรีย์ พอลิเมอร์ ธาตุในชีวิต</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ทำข้อสอบเก่า A-Level เคมี TCAS66–69 ครบ</div></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:14px; font-weight:700; color:#065F46; margin-bottom:14px;">🧬 ชีววิทยา A-Level (น้ำหนัก ~10%)</h3>
+          <div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">เซลล์ โครงสร้างเซลล์ การแบ่งเซลล์</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">พันธุกรรม DNA RNA โปรตีน วิวัฒนาการ</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ระบบในร่างกาย (ย่อยอาหาร, หายใจ, หมุนเวียน, ขับถ่าย, ประสาท)</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">นิเวศวิทยา ความหลากหลายทางชีวภาพ</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">พืช สังเคราะห์แสง การลำเลียง</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ทำข้อสอบเก่า A-Level ชีวะ TCAS66–69 ครบ</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:14px; font-weight:700; color:#1D4ED8; margin-bottom:14px;">🔢 คณิตศาสตร์ A-Level (น้ำหนัก 14%)</h3>
+          <div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">สมการ ฟังก์ชัน ลำดับอนุกรม ม.4</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ตรีโกณมิติ, เมทริกซ์, เวกเตอร์ ม.5</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">แคลคูลัส (อนุพันธ์ + ปริพันธ์) ม.5–6</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ความน่าจะเป็น สถิติ การแจกแจง</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ทำข้อสอบเก่า A-Level คณิต TCAS66–69 ครบ</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">Mock Test คณิต ทำได้ ≥80% แล้ว</div></div></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:14px; font-weight:700; color:#854D0E; margin-bottom:14px;">🇹🇭 ไทย + 🌏 สังคม (น้ำหนัก 7% + 7%)</h3>
+          <div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ภาษาไทย: วรรณคดี วรรณกรรม ม.4–6</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ภาษาไทย: หลักภาษา การเขียน การอ่าน</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">สังคม: ประวัติศาสตร์ ม.4–6 ครบ</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">สังคม: เศรษฐศาสตร์ รัฐศาสตร์ ศาสนา</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ทำข้อสอบเก่า A-Level ไทย + สังคม TCAS66–69</div></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:14px; font-weight:700; color:#6B21A8; margin-bottom:14px;">🏥 TPAT1 วิชาเฉพาะ กสพท (น้ำหนัก 30%)</h3>
+          <div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">Part เชาวน์ปัญญา: ทำโจทย์ครบ 5 ประเภท (matrix, pattern, series, analogy, spatial)</div><div class="checklist-meta">แนะนำ AdmissionPremium / มหาเทพติว</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">Part จริยธรรมแพทย์: อ่านตัวอย่าง 50+ สถานการณ์</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">Part เชื่อมโยง/จับใจความ: ฝึกอ่านด่วน + วิเคราะห์ข้อมูล</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ทำ Full Mock Test TPAT1 (4 ชม.) ครบ 5 ชุดขึ้นไป</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ทำได้ Mock เฉลี่ย ≥70% แล้ว</div></div></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><div><div class="checklist-label">ฝึกทำให้ทันเวลา (TPAT1 ใช้เวลาน้อยมาก ต้องรวดเร็ว)</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── TIPS ───── -->
+  <div id="tab-tips" class="section">
+    <p class="section-title">💡 เทคนิคจากติวเตอร์ชั้นนำ</p>
+
+    <div class="card-grid col-2">
+      <div>
+        <h3 style="font-size:15px; font-weight:700; color:var(--purple-800); margin-bottom:14px;">📘 เทคนิคการเตรียมวิชา</h3>
+
+        <div class="tip-card" style="border-color:#8B5CC8;">
+          <div class="tip-source">SmartMathPro – คณิต/ฟิสิกส์</div>
+          <div class="tip-text">ฟิสิกส์และคณิตต้องเน้นทำโจทย์มากกว่าอ่าน สัดส่วนที่ดีคือ <strong>อ่าน 30% : ทำโจทย์ 70%</strong> โจทย์ที่ผิดต้องบันทึกเหตุผลที่ผิดทุกข้อ ไม่ใช่แค่ดูเฉลย</div>
+        </div>
+
+        <div class="tip-card" style="border-color:#059669;">
+          <div class="tip-source">OnDemand – ชีววิทยา</div>
+          <div class="tip-text">ชีวะเนื้อหาเยอะ ต้องทำ <strong>Mindmap ทุก Chapter</strong> และใช้ Flashcard ท่องซ้ำแบบ Spaced Repetition ทบทวน 3 วัน, 7 วัน, 14 วันหลังเรียน</div>
+        </div>
+
+        <div class="tip-card" style="border-color:#DC2626;">
+          <div class="tip-source">AdmissionPremium – เคมี</div>
+          <div class="tip-text">เคมีต้องเข้าใจกลไก ไม่ใช่ท่อง เน้นทำโจทย์คำนวณซ้ำจนสมการกลายเป็น "ท่อง" โดยอัตโนมัติ เคมีอินทรีย์ให้เรียนหลังสุดของเคมีทั้งหมด</div>
+        </div>
+
+        <div class="tip-card" style="border-color:#6B21A8;">
+          <div class="tip-source">มหาเทพติว / AdmissionPremium – TPAT1</div>
+          <div class="tip-text">TPAT1 ต้องฝึก <strong>ความเร็ว</strong> เป็นอันดับ 1 เพราะเวลาน้อยมาก Part เชาวน์ต้องทำ 1 ข้อใน 45–60 วินาที Part จริยธรรมอ่าน scenario ให้เข้าใจบริบทก่อนเสมอ</div>
+        </div>
+
+        <div class="tip-card" style="border-color:#0C4A6E;">
+          <div class="tip-source">Enconcept – ภาษาอังกฤษ</div>
+          <div class="tip-text">A-Level อังกฤษเน้น Reading Comprehension และ Grammar โดยเฉพาะ เริ่มอ่าน English news/articles ทุกวัน อย่างน้อย 1 บทความ จะช่วยทั้งคำศัพท์และความเร็วในการอ่าน</div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-size:15px; font-weight:700; color:var(--purple-800); margin-bottom:14px;">🧠 เทคนิคการเรียนและสุขภาพ</h3>
+
+        <div class="tip-card" style="border-color:var(--gold);">
+          <div class="tip-source">หลักการ Pomodoro – แนะนำโดยทุกติวเตอร์</div>
+          <div class="tip-text">เรียน <strong>50 นาที พัก 10 นาที</strong> x 3 รอบ แล้วพักยาว 30 นาที อย่าเรียนเกิน 3 ชม.ต่อเนื่อง วิทยาศาสตร์การเรียนรู้พิสูจน์ว่าสมองจดจำได้ดีกว่าการนั่งเรียนนาน</div>
+        </div>
+
+        <div class="tip-card" style="border-color:#22C55E;">
+          <div class="tip-source">OnDemand / SmartMathPro – การนอน</div>
+          <div class="tip-text">นอน <strong>7–8 ชั่วโมง</strong> ทุกคืน ช่วง Deep Sleep คือช่วงที่สมองจัดเก็บความทรงจำ ใครนอนน้อยสมองเรียนได้ น้อยลง 40% ลด Social Media ก่อนนอน 1 ชั่วโมง</div>
+        </div>
+
+        <div class="tip-card" style="border-color:#8B5CC8;">
+          <div class="tip-source">แพทเทิร์นจาก Dek ที่ติด กสพท</div>
+          <div class="tip-text">เด็กที่ติดแพทย์ส่วนใหญ่ทำ <strong>Mock Test ≥ 20 ชุด</strong> ต่อวิชา และวิเคราะห์ทุกข้อที่ผิดอย่างละเอียด ไม่ใช่แค่ดูเฉลย จด Pattern ข้อสอบที่มักออก</div>
+        </div>
+
+        <div class="tip-card" style="border-color:#DC2626;">
+          <div class="tip-source">สำคัญที่สุด – กสพท ไม่ใช่แค่คะแนน</div>
+          <div class="tip-text">TPAT1 มีน้ำหนัก 30% ทำให้คะแนนนี้ "ทำลาย" หรือ "ช่วย" ได้มาก คนที่ TPAT1 สูงกว่า 75% มีโอกาสติด มช. แพทย์ แม้ A-Level บางวิชาจะไม่สูงมาก</div>
+        </div>
+
+        <div style="background:var(--purple-800); border-radius:12px; padding:20px; margin-top:4px;">
+          <div style="color:var(--gold-light); font-size:12px; font-weight:700; margin-bottom:10px;">📚 แหล่งเรียนแนะนำ (อ้างอิงจากสไตล์ติวเตอร์ดัง)</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div style="background:rgba(255,255,255,0.08); border-radius:8px; padding:10px; font-size:12px; color:rgba(255,255,255,0.85);">🔢 <strong>คณิต + ฟิสิกส์</strong><br>SmartMathPro, OnDemand</div>
+            <div style="background:rgba(255,255,255,0.08); border-radius:8px; padding:10px; font-size:12px; color:rgba(255,255,255,0.85);">🧬 <strong>ชีวะ + เคมี</strong><br>OnDemand, Panya Society</div>
+            <div style="background:rgba(255,255,255,0.08); border-radius:8px; padding:10px; font-size:12px; color:rgba(255,255,255,0.85);">🏥 <strong>TPAT1</strong><br>AdmissionPremium, มหาเทพ, OpenDurian</div>
+            <div style="background:rgba(255,255,255,0.08); border-radius:8px; padding:10px; font-size:12px; color:rgba(255,255,255,0.85);">🇬🇧 <strong>อังกฤษ</strong><br>Enconcept</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<div class="footer">
+  <strong>CMU Medicine Planner – TCAS70 กสพท</strong> · สร้างโดย AI ประมาณการจากแพทเทิร์น TCAS68–69<br>
+  ⚠️ กรุณาตรวจสอบวันสอบจริงที่ <a href="https://cotmesadmission.com">cotmesadmission.com</a> · <a href="https://mytcas.com">mytcas.com</a> · <a href="https://med.cmu.ac.th">med.cmu.ac.th</a> เสมอ<br>
+  <span style="color:var(--purple-400);">💜 เป็นกำลังใจให้ว่าที่คุณหมอ CMU ทุกคน!</span>
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function showWeek(id) {
+    document.querySelectorAll('.week-table').forEach(t => t.style.display = 'none');
+    document.getElementById('week-' + id).style.display = 'block';
+    document.querySelectorAll('.week-nav-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  function toggleCheck(item) {
+    const cb = item.querySelector('input[type="checkbox"]');
+    cb.checked = !cb.checked;
+    item.classList.toggle('checked', cb.checked);
+  }
+
+  // Animate progress bars on load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.breakdown-bar-fill').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => bar.style.width = w, 100);
+      });
+    }, 300);
+  });
+</script>
+</body>
+</html>
